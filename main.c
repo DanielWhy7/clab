@@ -1,65 +1,55 @@
 #include <stdio.h>
-#include <malloc.h>
-//#include <windows.h>
-//#define _CRT_SECURE_NO_WARNINGS
+#include <math.h>
 
-const int MAX_N=100;
-int n,m;
-
-int getValidNumber(int n){
-  if(n<=0 || n>MAX_N)return 3;return n;
+unsigned long long double_fact(int n){
+  if (n<=0)return 1;
+  unsigned long long res=1;
+  for(int i=n;i>0;i-=2)
+    res*=i;
+  return res;
 }
 
-int** getMatrix(){
-  printf("Enter amount of rows(<=100): ");
-  scanf("%d",&n);n=getValidNumber(n);
-  printf("Enter amount of column(<=100): ");
-  scanf("%d",&m);m=getValidNumber(m);
-  int** arr=(int**)malloc(sizeof(int*) * n);
-
-  for(int i=0;i<n;i++)arr[i]=(int*)malloc(sizeof(int) * m);
-
-  for(int i=0;i<n;i++){
-    for(int j=0;j<m;j++){
-      printf("Enter element[%d][%d]: ",i,j);
-      scanf("%d",&arr[i][j]);
-    }
-  }
-  return arr;
+double f_series(double x,double epsilon){
+  double sum=x;
+  double term;
+  int n=1;
+  do{
+    unsigned long long num=double_fact(2*n - 1);
+    unsigned long long den=double_fact(2*n);
+    double power=pow(x,2*n+1);
+    term=pow(-1,n)*(double)num/(den*(2*n+1))*power;
+    sum+=term;
+    n++;
+  }while(fabs(term)>epsilon && n<100);
+  return sum;
 }
 
-void spiralVector(int** arr){
-  if(n==m){
-    int vector[n*n];
-    int top=0,bottom=n-1,left=0,right=n-1,idx=0,i=0;
-    while(top<=bottom && left<=right){
-      for(int i=left;i<=right;++i)vector[idx++]=arr[top][i];++top;
-      for(int i=top;i<=bottom;++i)vector[idx++]=arr[i][right];--right;
-      if(top<=bottom){for(int i=right;i>=left;--i)vector[idx++]=arr[bottom][i];--bottom;}
-      if(left<=right){for(int i=bottom;i>=top;--i)vector[idx++]=arr[i][left];++left;}
-    }
-    for(i=0;i<n*n;i++)printf("%d ",vector[i]);
-  }
-  else printf("Not supported");
-}
-
-void printMatrix(int** arr){
-  for(int i=0;i<n;i++){
-    for(int j=0;j<m;j++){
-      printf("[%d] ",arr[i][j]);
-    }
-    printf("\n");
+void table_fx(double a,double b,double h,double epsilon){
+  printf("\nx\tf(x) series\tf(x) exact\n");
+  for(double x=a;x<=b+1e-8;x+=h){
+    double f_val=f_series(x,epsilon);
+    double f_exact=log(x+sqrt(1+x*x));
+    printf("%.5f\t%.8f\t%.8f\n",x,f_val,f_exact);
   }
 }
 
 int main(){
-  //SetConsoleCP(1251);
-  //SetConsoleOutputCP(1251):
-  int** arr=getMatrix();
-  printf("The matrix:\n");
-  printMatrix(arr);
-  printf("D(n^2):\n");
-  spiralVector(arr);
+  double a,b,h,epsilon;
+  char repeat;
+  do{
+    printf("Enter a (start of interval, [0,1]): ");
+    scanf("%lf",&a);
+    printf("Enter b (end of interval, [0,1]): ");
+    scanf("%lf",&b);
+    printf("Enter h (step > 0): ");
+    scanf("%lf",&h);
+    printf("Enter epsilon (accuracy > 0): ");
+    scanf("%lf",&epsilon);
 
-  printf("\n");for(int i=0;i<n;i++)free(arr[i]);free(arr);return 0;
+    table_fx(a,b,h,epsilon);
+
+    printf("\nCalculate again with new parameters? (y/N): ");
+    scanf(" %c",&repeat);
+  }while(repeat=='y'||repeat=='Y');
+  return 0;
 }
